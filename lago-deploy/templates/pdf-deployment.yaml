@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    component: pdf
+  name: pdf
+spec:
+  ports:
+    - name: "3000"
+      port: 3000
+      targetPort: 3000
+  selector:
+    component: pdf
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: pdf
+  name: pdf
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: pdf
+  template:
+    metadata:
+      labels:
+        component: pdf
+    spec:
+      containers:
+        - image: getlago/lago-gotenberg:7
+          name: pdf
+          ports:
+            - containerPort: 3000
+              name: pdf
+      restartPolicy: Always

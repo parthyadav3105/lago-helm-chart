@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    component: redis
+  name: redis
+spec:
+  ports:
+    - name: "6379"
+      port: 6379
+      targetPort: 6379
+  selector:
+    component: redis
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    component: lago-redis-data
+  name: lago-redis-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: redis
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: redis
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        component: redis
+    spec:
+      containers:
+        - args:
+            - --port
+            - "6379"
+          image: redis:6.2-alpine
+          name: lago-redis
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - mountPath: /data
+              name: lago-redis-data
+      restartPolicy: Always
+      volumes:
+        - name: lago-redis-data
+          persistentVolumeClaim:
+            claimName: lago-redis-data
+
